@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import "katex/dist/katex.min.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Playfair Display";
+  --font-body:    "Inter";
+  --font-mono:    "JetBrains Mono";
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #F7F9FC;
+  color: #0B1F3A;
+  font-family: var(--font-body), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #EEF2F7; }
+::-webkit-scrollbar-thumb { background: #00B4A0; border-radius: 3px; }
+
+/* Markdown output styling */
+.answer-content h1, .answer-content h2, .answer-content h3 {
+  font-family: var(--font-display), serif;
+  color: #0B1F3A;
+  margin: 1.2rem 0 0.6rem;
+}
+.answer-content h2 { font-size: 1.25rem; }
+.answer-content h3 { font-size: 1.1rem; color: #00B4A0; }
+.answer-content p  { line-height: 1.75; margin: 0.6rem 0; }
+.answer-content ul, .answer-content ol {
+  margin: 0.6rem 0 0.6rem 1.4rem;
+  line-height: 1.8;
+}
+.answer-content li::marker { color: #00B4A0; }
+.answer-content strong { color: #0B1F3A; }
+.answer-content code {
+  background: #EEF2F7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+.answer-content pre {
+  background: #0B1F3A;
+  color: #F7F9FC;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.answer-content blockquote {
+  border-left: 3px solid #00B4A0;
+  padding-left: 1rem;
+  color: #6B7A99;
+  margin: 0.8rem 0;
+}
+
+/* KaTeX display math */
+.katex-display {
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+/* Drop zone hover */
+.drop-active { border-color: #00B4A0 !important; background: #EEF2F7 !important; }
+
+/* Loading shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #EEF2F7 25%, #D5DFF0 50%, #EEF2F7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

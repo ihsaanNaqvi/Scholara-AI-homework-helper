@@ -8,8 +8,7 @@ import {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Use gemini-1.5-flash — free tier, multimodal, fast
-const MODEL = "gemini-1.5-flash";
-
+const MODEL = "gemini-flash-latest";
 const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_NONE },
   { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,       threshold: HarmBlockThreshold.BLOCK_NONE },

@@ -8,7 +8,7 @@ import {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Use gemini-1.5-flash — free tier, multimodal, fast
- const MODEL = "gemini-flash-latest";
+const MODEL = "gemini-1.5-flash";
 
 const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -19,18 +19,19 @@ const safetySettings = [
 
 // ─── System prompts ──────────────────────────────────────────────────────────
 
-const BASE_SYSTEM = `You are an expert GCSE tutor specialising in Science (Biology, Chemistry, Physics) 
-and Mathematics. Your role is to help students understand their homework questions clearly and accurately.
+const BASE_SYSTEM = `You are a friendly, encouraging GCSE tutor for Science (Biology, Chemistry, Physics) 
+and Mathematics, helping students aged 14-16.
 
-RULES:
-- Always give a clear, step-by-step explanation a GCSE student can follow
-- Use simple, age-appropriate language (target age 14-16)
-- For maths, show every working step — never skip steps
-- For science, explain the underlying concept, not just the answer
-- Always end with a "Key Points to Remember" summary in bullet points
-- If the question involves a diagram, describe it clearly in words AND provide SVG/Mafs code
-- Use LaTeX for mathematical expressions: wrap inline math in $...$ and display math in $$...$$
-- Be encouraging and supportive in tone`;
+STYLE — this matters:
+- Be CONCISE. Explain like a real teacher speaking to a student — clear and to the point, not a textbook essay.
+- Get to the answer quickly. Avoid over-long preambles.
+- Use short paragraphs and simple language.
+- For maths, show the key working steps clearly but without padding.
+- For science, explain the core concept simply, then the answer.
+- End with a short "Key Points" summary (2-4 bullets max).
+- Use LaTeX for maths: inline $...$ and display $$...$$.
+- Warm, supportive tone — like a favourite teacher explaining something.
+- Aim for an explanation a student can read in under a minute where possible.`;
 
 const DIAGRAM_SYSTEM = `${BASE_SYSTEM}
 
@@ -91,6 +92,23 @@ export interface SolveResult {
   diagramSvg?: string;
   subject:     "maths" | "science" | "general";
   hasDiagram:  boolean;
+  voiceText:   string;
+}
+
+// Strip markdown, LaTeX, and SVG to produce clean text for text-to-speech
+function makeVoiceText(explanation: string): string {
+  return explanation
+    .replace(/\[DIAGRAM_START\][\s\S]*?\[DIAGRAM_END\]/g, "")   // remove diagrams
+    .replace(/<svg[\s\S]*?<\/svg>/gi, "")                        // remove any svg
+    .replace(/\$\$([\s\S]*?)\$\$/g, " $1 ")                      // display math → inline
+    .replace(/\$([^$]*?)\$/g, " $1 ")                            // strip $ delimiters
+    .replace(/[#*_`>|]/g, "")                                    // strip markdown symbols
+    .replace(/\\[a-zA-Z]+/g, "")                                 // strip latex commands
+    .replace(/\|.*?\|/g, "")                                     // strip table rows
+    .replace(/\n{2,}/g, ". ")                                    // paragraphs → pauses
+    .replace(/\n/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function detectSubject(text: string): "maths" | "science" | "general" {
@@ -149,5 +167,6 @@ export async function solveQuestion(input: SolveInput): Promise<SolveResult> {
     diagramSvg,
     subject,
     hasDiagram: !!diagramSvg,
+    voiceText:  makeVoiceText(explanation),
   };
 }

@@ -10,12 +10,14 @@ import FileUpload     from "@/components/FileUpload";
 import MathMarkdown   from "@/components/MathMarkdown";
 import DiagramRenderer from "@/components/DiagramRenderer";
 import SubjectBadge   from "@/components/SubjectBadge";
+import VoicePlayer    from "@/components/VoicePlayer";
 
 interface Answer {
   explanation: string;
   diagramSvg?: string;
   subject:     "maths" | "science" | "general";
   hasDiagram:  boolean;
+  voiceText:   string;
 }
 
 interface HistoryItem {
@@ -321,7 +323,7 @@ export default function Home() {
           <div ref={answerRef} className="bg-white rounded-2xl border border-navy-100 shadow-sm overflow-hidden animate-fade-up">
             {/* Answer header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-navy-100 bg-paper">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <div className="w-7 h-7 rounded-full bg-teal/10 flex items-center justify-center">
                   <Sparkles size={13} className="text-teal" />
                 </div>
@@ -332,6 +334,7 @@ export default function Home() {
                     + Diagram
                   </span>
                 )}
+                <VoicePlayer text={answer.voiceText} autoPlay={true} />
               </div>
               <button
                 onClick={copyAnswer}

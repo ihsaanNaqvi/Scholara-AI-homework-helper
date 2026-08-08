@@ -7,8 +7,8 @@ import {
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// Alias that always points to the current Flash model — won't break on version changes
-const MODEL = "gemini-flash-latest";
+// Fallback chain — all confirmed available on this key
+const MODELS = ["gemini-flash-latest", "gemini-2.0-flash", "gemini-2.5-flash-lite"];
 
 const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -213,13 +213,6 @@ export async function solveQuestion(input: SolveInput): Promise<SolveResult> {
 
   const subject = detectSubject(question);
 
-  const model = genAI.getGenerativeModel({
-    model: MODEL,
-    safetySettings,
-    systemInstruction: systemFor(mode, language),
-    generationConfig: { maxOutputTokens: 4096 },
-  });
-
   let userText = question;
   if (mode === "mark" && studentWork) {
     userText = `QUESTION:\n${question}\n\nSTUDENT'S ATTEMPTED ANSWER:\n${studentWork}`;
@@ -229,8 +222,34 @@ export async function solveQuestion(input: SolveInput): Promise<SolveResult> {
   if (imageBase64 && imageMime) parts.push(base64ToGenerativePart(imageBase64, imageMime));
   if (pdfBase64)                parts.push(base64ToGenerativePart(pdfBase64, "application/pdf"));
 
-  const result   = await model.generateContent(parts);
-  const rawText  = result.response.text();
+  // Try each model in order — fall through on capacity/availability errors
+  let rawText = "";
+  let lastError: unknown = null;
+
+  for (const modelName of MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        safetySettings,
+        systemInstruction: systemFor(mode, language),
+        generationConfig: { maxOutputTokens: 4096 },
+      });
+      const result = await model.generateContent(parts);
+      rawText = result.response.text();
+      break; // success — stop trying
+    } catch (err) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : "";
+      // Only fall through on capacity/availability errors; real errors should surface
+      if (msg.includes("503") || msg.includes("overloaded") || msg.includes("high demand") || msg.includes("404")) {
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  if (!rawText) throw lastError ?? new Error("All models unavailable — please try again in a moment.");
+
   const { explanation, diagramSvg } = extractDiagram(rawText);
 
   return {

@@ -115,7 +115,17 @@ export default function Home() {
           pdfBase64:   fileType === "pdf"   ? fileBase64 : undefined,
         }),
       });
-      const data = await res.json();
+            const raw = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          res.status === 504 || raw.includes("timeout")
+            ? "That took too long — please try again."
+            : `Server error (${res.status}). Please try again.`
+        );
+      }
       if (!res.ok) throw new Error(data.error || "Failed to get answer.");
 
       setAnswer(data);

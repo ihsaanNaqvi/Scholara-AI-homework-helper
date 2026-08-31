@@ -8,7 +8,13 @@ import {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Fallback chain — all confirmed available on this key
-const MODELS = ["gemini-flash-latest", "gemini-2.0-flash", "gemini-2.5-flash-lite"];
+const MODELS = [
+  "gemini-flash-latest",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+  "gemini-2.0-flash",
+  "gemini-flash-lite-latest",
+];
 
 const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_NONE },
